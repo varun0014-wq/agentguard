@@ -1,3 +1,0 @@
-"""
-AgentGuard Test Suite Package.
-"""
