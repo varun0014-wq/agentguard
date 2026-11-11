@@ -1,0 +1,490 @@
+{
+  "info": {
+    "_postman_id": "a9b1c2d3-e4f5-4a6b-8c7d-9e0f1a2b3c4d",
+    "name": "AgentGuard API",
+    "description": "Postman Collection for AgentGuard - Independent Financial Authorization Layer between AI Agents and PayPal.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "agentId",
+      "value": "shopping_agent",
+      "type": "string"
+    },
+    {
+      "key": "transactionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Returns status, version, and server timestamp."
+          }
+        },
+        {
+          "name": "Integrations Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/integrations/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "status"]
+            },
+            "description": "Checks connectivity for PayPal Sandbox, Channel3, and AI Provider without leaking secrets."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. AI Agents",
+      "item": [
+        {
+          "name": "List Agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents"]
+            }
+          }
+        },
+        {
+          "name": "Register Agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Procurement Bot\",\n  \"daily_limit\": 150.00,\n  \"max_transaction\": 75.00,\n  \"auto_approval_limit\": 30.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents"]
+            }
+          }
+        },
+        {
+          "name": "Get Agent Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/{{agentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents", "{{agentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Pause Agent",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/{{agentId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents", "{{agentId}}", "pause"]
+            }
+          }
+        },
+        {
+          "name": "Activate Agent",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/{{agentId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents", "{{agentId}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Natural Language Purchasing (Agent A)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"shopping_agent\",\n  \"instruction\": \"Find wireless headphones under $100\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agents/purchase-instruction",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents", "purchase-instruction"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Products & Discovery",
+      "item": [
+        {
+          "name": "Search Products (Channel3)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/search?q=headphones",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "headphones"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/prod_kb_001",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "prod_kb_001"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Security Policies",
+      "item": [
+        {
+          "name": "Get Security Rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/security/rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "rules"]
+            }
+          }
+        },
+        {
+          "name": "Update Security Rules (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-actor-role",
+                "value": "admin"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"daily_limit\": 250.00,\n  \"max_transaction\": 120.00,\n  \"auto_approval_limit\": 60.00,\n  \"allowed_merchants\": [\"TrustedStore\", \"TechStore\", \"VerifiedShop\", \"OfficeSuppliesCo\"],\n  \"restricted_merchants\": [\"ShadyMarket\", \"BannedVendor\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/security/rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "rules"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Demo Scenarios & Payments",
+      "item": [
+        {
+          "name": "Scenario 1: Auto Approval (Keyboard, $20)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) { pm.collectionVariables.set('transactionId', jsonData.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"shopping_agent\",\n  \"product_name\": \"Wireless Keyboard\",\n  \"merchant\": \"TrustedStore\",\n  \"amount\": \"20.00\",\n  \"currency\": \"USD\",\n  \"product_reference\": \"prod_kb_001\",\n  \"idempotency_key\": \"demo_scenario_1_auto_001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "request"]
+            },
+            "description": "Expected: AUTO APPROVED. Amount ($20) is within auto threshold ($50) and merchant is approved."
+          }
+        },
+        {
+          "name": "Scenario 2: Human Approval Required (Headphones, $80)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) { pm.collectionVariables.set('transactionId', jsonData.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"shopping_agent\",\n  \"product_name\": \"Wireless Headphones\",\n  \"merchant\": \"NewStore\",\n  \"amount\": \"80.00\",\n  \"currency\": \"USD\",\n  \"product_reference\": \"prod_hp_002\",\n  \"idempotency_key\": \"demo_scenario_2_review_002\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "request"]
+            },
+            "description": "Expected: HUMAN APPROVAL REQUIRED (decision: REVIEW). Merchant is new (+30 risk) and amount exceeds auto limit (+25 risk)."
+          }
+        },
+        {
+          "name": "Scenario 3: Manipulated Payment Blocked (Laptop: $900 vs $500)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"shopping_agent\",\n  \"product_name\": \"Laptop\",\n  \"merchant\": \"TechStore\",\n  \"amount\": \"900.00\",\n  \"currency\": \"USD\",\n  \"product_reference\": \"prod_lp_003\",\n  \"idempotency_key\": \"demo_scenario_3_manipulated_003\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "request"]
+            },
+            "description": "Expected: BLOCKED. Verified catalog price is $500.00, but submitted is $900.00. Hard security violation; never reaches PayPal."
+          }
+        },
+        {
+          "name": "List All Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments"]
+            }
+          }
+        },
+        {
+          "name": "List Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{transactionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "{{transactionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Approve Payment (Human Reviewer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewer_notes\": \"Verified legitimate hardware procurement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{transactionId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "{{transactionId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Payment (Human Reviewer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewer_notes\": \"Declined due to unapproved vendor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{transactionId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "{{transactionId}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Capture Payment (PayPal Order)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{transactionId}}/capture",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "{{transactionId}}", "capture"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Dashboard Activity Stream",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/activity",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "activity"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Webhooks",
+      "item": [
+        {
+          "name": "PayPal Webhook Event (Simulated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "paypal-transmission-id",
+                "value": "trans_sim_12345"
+              },
+              {
+                "key": "paypal-transmission-time",
+                "value": "2026-11-09T12:00:00Z"
+              },
+              {
+                "key": "paypal-cert-url",
+                "value": "https://api.sandbox.paypal.com/cert"
+              },
+              {
+                "key": "paypal-auth-algo",
+                "value": "SHA256withRSA"
+              },
+              {
+                "key": "paypal-transmission-sig",
+                "value": "simulated_signature_hash"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-SIM-001\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource\": {\n    \"id\": \"CAPTURE-SIM-999\",\n    \"status\": \"COMPLETED\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/paypal",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "paypal"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

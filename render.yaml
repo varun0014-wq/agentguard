@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: agentguard-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        value: sqlite:///./agentguard.db
+      - key: DEFAULT_DAILY_LIMIT
+        value: "200.00"
+      - key: DEFAULT_MAX_TRANSACTION
+        value: "100.00"
+      - key: DEFAULT_AUTO_APPROVAL_LIMIT
+        value: "50.00"
+      - key: DEFAULT_ALLOWED_MERCHANTS
+        value: "TrustedStore,TechStore,VerifiedShop,OfficeSuppliesCo"
+      - key: DEFAULT_CURRENCY
+        value: "USD"
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: CHANNEL3_BASE_URL
+        value: https://api.channel3.ai
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

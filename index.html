@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>AgentGuard – AI Financial Firewall</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#0070BA",
+            "primary-dark": "#142C4C",
+            "secondary": "#1546A0",
+            "surface-bg": "#F5F7FA",
+            "surface-card": "#FFFFFF",
+            "surface-border": "#E2E8F0",
+            "status-approved": "#16A34A",
+            "status-approved-bg": "#ECFDF5",
+            "status-pending": "#F59E0B",
+            "status-pending-bg": "#FFFBEB",
+            "status-blocked": "#DC2626",
+            "status-blocked-bg": "#FEF2F2",
+            "text-main": "#142C4C",
+            "text-muted": "#64748B"
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F5F7FA; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Premium Fintech Soft Box Shadow Effect across all panels and cards */
+    .bg-white, .dark\:bg-slate-900 {
+      box-shadow: 0 4px 20px -2px rgba(20, 44, 76, 0.06), 0 2px 6px -1px rgba(20, 44, 76, 0.04);
+    }
+    .dark .bg-white, .dark .dark\:bg-slate-900, .dark .bg-slate-900 {
+      box-shadow: 0 4px 25px -2px rgba(0, 0, 0, 0.45), 0 2px 10px -1px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-surface-bg dark:bg-slate-950 text-text-main dark:text-slate-100 antialiased selection:bg-primary/20 min-h-screen">
+
+  <!-- ==================== PERSISTENT HEADER ==================== -->
+  <header id="main-header" class="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-900 border-b border-surface-border dark:border-slate-800 z-40 px-4 sm:px-6 flex items-center justify-between shadow-[0_1px_4px_rgba(20,44,76,0.04)]">
+    <!-- Left: Mobile Toggle & Brand Lockup Matching User Reference -->
+    <div class="flex items-center gap-3 sm:gap-4 lg:gap-5">
+      <!-- Mobile Hamburger Button -->
+      <button onclick="window.AgentGuardApp.toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button" aria-label="Open Navigation">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <!-- Brand Lockup: PayPal Official Logo + AgentGuard Security -->
+      <div class="cursor-pointer" onclick="window.AgentGuardStore.setTab('dashboard')">
+        <div id="header-logo-container"></div>
+      </div>
+
+      <!-- Divider -->
+      <div class="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+      <!-- PayPal Secure Status Badge -->
+      <div class="hidden sm:flex items-center">
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-[#0070BA] dark:text-sky-300 border border-sky-100 dark:border-sky-900/40 font-mono tracking-wider flex items-center gap-2 shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>PAYPAL PROTECTED</span>
+        </span>
+      </div>
+
+      <!-- Global Search Input with ⌘K Directly Next to Badge -->
+      <div class="relative w-64 md:w-72 lg:w-84 xl:w-96 hidden md:block">
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input onclick="window.AgentGuardApp.openCommandPalette()" class="w-full h-9 pl-9 pr-12 bg-slate-50/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs text-text-main dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-primary cursor-pointer transition-all" placeholder="Search transactions, agents, limits (⌘K)..." readonly type="text"/>
+        <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-[10px] text-slate-400 font-mono font-medium shadow-2xs">⌘K</kbd>
+      </div>
+    </div>
+
+    <!-- Right: Quick Actions, Environment Switcher, Theme & Profile Menu -->
+    <div class="flex items-center gap-2 sm:gap-3">
+
+      <!-- Environment Switcher Pill: Sandbox / Live Production -->
+      <div class="hidden xl:flex items-center bg-surface-bg dark:bg-slate-800 p-0.5 rounded-full border border-surface-border dark:border-slate-700 text-xs font-semibold shadow-2xs">
+        <button 
+          id="btn-env-sandbox"
+          type="button"
+          onclick="window.AgentGuardApp.setEnvironment('sandbox')"
+          class="px-3.5 py-1 rounded-full bg-[#003087] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5">
+          <span>Sandbox</span>
+        </button>
+        <button 
+          id="btn-env-production"
+          type="button"
+          onclick="window.AgentGuardApp.setEnvironment('production')"
+          class="px-3.5 py-1 rounded-full text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white font-medium text-xs transition-colors">
+          <span>Live Production</span>
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="hidden xl:block h-4 w-px bg-surface-border dark:bg-slate-700"></div>
+
+      <!-- Documentation Link -->
+      <a 
+        href="javascript:void(0)" 
+        onclick="window.AgentGuardStore.setTab('support')" 
+        class="hidden xl:inline-flex items-center text-xs font-semibold text-text-muted hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors">
+        Documentation
+      </a>
+    </div>
+
+    <!-- Right: Quick Actions & Notifications & Profile Menu -->
+    <div class="flex items-center gap-2 sm:gap-3">
+
+      <!-- Theme Switcher Button -->
+      <button onclick="window.AgentGuardStore.toggleTheme()" class="p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button" title="Toggle Light/Dark Theme">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </button>
+
+      <!-- Notifications Bell with Live Badge -->
+      <div class="relative">
+        <button id="header-notif-btn" onclick="window.AgentGuardApp.toggleNotifications()" aria-label="Notifications" class="relative p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span id="header-notif-count" class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-[#F59E0B] text-white font-black text-[11px] rounded-full border-2 border-white dark:border-slate-900 shadow-md leading-none select-none z-10">3</span>
+        </button>
+
+        <!-- Notification Center Dropdown -->
+        <div id="notification-center-drawer" class="absolute right-0 top-12 z-50 hidden w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 shadow-2xl overflow-hidden animate-fade-in">
+          <div class="p-3.5 border-b border-surface-border dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <strong class="text-xs font-bold text-primary-dark dark:text-white">Notifications</strong>
+              <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-50 text-accent-orange font-mono">Live</span>
+            </div>
+            <button onclick="window.AgentGuardStore.markNotificationsRead()" class="text-[11px] font-semibold text-primary hover:underline">
+              Mark all read
+            </button>
+          </div>
+          <div id="notification-drawer-feed" class="p-3 max-h-80 overflow-y-auto space-y-2.5">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile Section with Dropdown Menu & Top-Right Logout -->
+      <div class="relative">
+        <div id="header-profile-btn" onclick="window.AgentGuardApp.toggleProfileMenu()" class="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-surface-border dark:border-slate-800 cursor-pointer select-none hover:opacity-85 transition-opacity">
+          <div id="header-user-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-bold text-xs flex items-center justify-center shadow-xs">
+            A
+          </div>
+          <div class="hidden lg:flex flex-col text-left leading-tight">
+            <span id="header-user-name" class="text-xs font-bold text-primary-dark dark:text-white">Alex Johnson</span>
+            <span class="text-[10px] text-text-muted dark:text-slate-400">Account Custodian</span>
+          </div>
+          <svg class="w-3.5 h-3.5 text-text-muted hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+
+        <!-- Profile Dropdown Menu (Includes Logout) -->
+        <div id="header-profile-menu" class="absolute right-0 top-12 z-50 hidden w-60 rounded-2xl bg-white dark:bg-slate-900 border border-surface-border dark:border-slate-800 shadow-2xl p-2 animate-fade-in text-xs space-y-1">
+          <div class="px-3 py-2 border-b border-surface-border dark:border-slate-800 mb-1">
+            <div id="menu-user-name" class="font-bold text-primary-dark dark:text-white">Alex Johnson</div>
+            <div id="menu-user-email" class="text-[11px] text-text-muted font-mono truncate">alex.johnson@mycompany.com</div>
+          </div>
+          <button onclick="window.AgentGuardStore.setTab('profile'); window.AgentGuardApp.closeProfileMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-main dark:text-slate-200 hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors text-left font-medium">
+            <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>My Profile</span>
+          </button>
+          <button onclick="window.AgentGuardStore.setTab('settings'); window.AgentGuardApp.closeProfileMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-main dark:text-slate-200 hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors text-left font-medium">
+            <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Settings</span>
+          </button>
+          <button onclick="window.AgentGuardStore.setTab('support'); window.AgentGuardApp.closeProfileMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-main dark:text-slate-200 hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors text-left font-medium">
+            <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            <span>Help & Support</span>
+          </button>
+          <div class="pt-1 border-t border-surface-border dark:border-slate-800">
+            <button onclick="window.AgentGuardViews.handleLogout(); window.AgentGuardApp.closeProfileMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-status-blocked hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-left font-bold">
+              <svg class="w-4 h-4 text-status-blocked" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== SIDEBAR NAVIGATION (LEFT-ALIGNED, CONSISTENT TYPOGRAPHY) ==================== -->
+  <aside id="main-sidebar" class="fixed left-0 top-16 bottom-0 w-72 bg-white dark:bg-slate-900 border-r border-surface-border dark:border-slate-800 z-30 overflow-y-auto px-3.5 py-5 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0">
+    <div class="space-y-6">
+      
+      <!-- MAIN MENU -->
+      <div class="space-y-1">
+        <div class="px-3 py-1 text-[10px] font-bold text-text-muted dark:text-slate-400 tracking-wider uppercase text-left">
+          Main Menu
+        </div>
+        <nav class="space-y-1">
+          
+          <!-- 1. Dashboard -->
+          <button data-nav-tab="dashboard" onclick="window.AgentGuardStore.setTab('dashboard'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+              <span class="truncate">Dashboard</span>
+            </div>
+          </button>
+
+          <!-- 2. Transactions -->
+          <button data-nav-tab="transactions" onclick="window.AgentGuardStore.setTab('transactions'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6"/><path d="M16 12h-6"/><path d="M16 16h-6"/></svg>
+              <span class="truncate">Transactions</span>
+            </div>
+          </button>
+
+          <!-- 3. Payment Approvals -->
+          <button data-nav-tab="payment-approvals" onclick="window.AgentGuardStore.setTab('payment-approvals'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              <span class="truncate">Payment Approvals</span>
+            </div>
+            <span id="sidebar-pending-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-mono shrink-0 ml-auto shadow-2xs">3 Pending</span>
+          </button>
+
+          <!-- 4. Agent Control -->
+          <button data-nav-tab="agent-control" onclick="window.AgentGuardStore.setTab('agent-control'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+              <span class="truncate">Agent Control</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-status-approved border border-status-approved/30 font-mono shrink-0 ml-auto">6</span>
+          </button>
+
+          <!-- 5. Security Center -->
+          <button data-nav-tab="security-monitoring" onclick="window.AgentGuardStore.setTab('security-monitoring'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span class="truncate">Security Center</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-status-approved border border-status-approved/30 font-mono shrink-0 ml-auto">Safe</span>
+          </button>
+
+          <!-- 6. Monthly Spending & Budgets -->
+          <button data-nav-tab="monthly-spending" onclick="window.AgentGuardStore.setTab('monthly-spending'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+              <span class="truncate">Monthly Spending</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-primary border border-primary/20 font-mono shrink-0 ml-auto">Budgets</span>
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- PAYPAL SERVICES -->
+      <div class="space-y-1 pt-3 border-t border-surface-border dark:border-slate-800">
+        <div class="px-3 py-1 text-[10px] font-bold text-text-muted dark:text-slate-400 tracking-wider uppercase text-left">
+          PayPal Services
+        </div>
+        <nav class="space-y-1">
+
+          <!-- 7. Split Bills -->
+          <button data-nav-tab="split-bills" onclick="window.AgentGuardStore.setTab('split-bills'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+              <span class="truncate">Split Bills</span>
+            </div>
+          </button>
+
+          <!-- 8. Currency Converter -->
+          <button data-nav-tab="currency-converter" onclick="window.AgentGuardStore.setTab('currency-converter'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span class="truncate">Currency Converter</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-primary border border-primary/20 font-mono shrink-0 ml-auto">40+ FX</span>
+          </button>
+
+          <!-- 9. QR Scanner -->
+          <button data-nav-tab="qr-scanner" onclick="window.AgentGuardStore.setTab('qr-scanner'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+              <span class="truncate">QR Scanner</span>
+            </div>
+          </button>
+
+          <!-- 10. Offers & Rewards -->
+          <button data-nav-tab="offers" onclick="window.AgentGuardStore.setTab('offers'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><circle cx="7" cy="7" r=".5" fill="currentColor"/></svg>
+              <span class="truncate">Offers & Rewards</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-status-approved border border-status-approved/30 font-mono shrink-0 ml-auto">Cashback</span>
+          </button>
+
+          <!-- 11. AI Assistant -->
+          <button data-nav-tab="ai-assistant" onclick="window.AgentGuardStore.setTab('ai-assistant'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="truncate">AI Assistant</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-primary border border-primary/20 font-mono shrink-0 ml-auto">Chat</span>
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- ACCOUNT (Clean Grouping at Bottom) -->
+      <div class="space-y-1 pt-3 border-t border-surface-border dark:border-slate-800">
+        <div class="px-3 py-1 text-[10px] font-bold text-text-muted dark:text-slate-400 tracking-wider uppercase text-left">
+          Account
+        </div>
+        <nav class="space-y-0.5">
+          <button data-nav-tab="profile" onclick="window.AgentGuardStore.setTab('profile'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="truncate">Profile</span>
+            </div>
+          </button>
+
+          <button data-nav-tab="settings" onclick="window.AgentGuardStore.setTab('settings'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span class="truncate">Settings</span>
+            </div>
+          </button>
+
+          <button data-nav-tab="support" onclick="window.AgentGuardStore.setTab('support'); window.AgentGuardApp.closeMobileMenu();" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-text-muted dark:text-slate-400 hover:text-text-main dark:hover:text-white hover:bg-surface-bg dark:hover:bg-slate-800 transition-colors" type="button">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+              <span class="truncate">Help & Support</span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN VIEW CONTAINER ==================== -->
+  <div id="content-layout-wrapper" class="lg:pl-72 transition-all">
+    <main class="w-full pt-20 px-4 sm:px-8 py-6 min-h-screen">
+      <div id="main-view-container">
+        <!-- Rendered dynamically by active view (or login view if logged out) -->
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODAL 1: EMERGENCY PAUSE CONFIRMATION ==================== -->
+  <div id="emergency-pause-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center gap-3 text-status-blocked">
+        <div class="w-10 h-10 rounded-2xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-status-blocked" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-primary-dark dark:text-white">Emergency Pause All AI Agents?</h3>
+          <span class="text-xs text-status-blocked font-bold uppercase tracking-wider">Immediate Fleet Suspension</span>
+        </div>
+      </div>
+      
+      <p class="text-xs text-text-muted dark:text-slate-400 leading-relaxed">
+        This action will immediately suspend all <strong>6 connected autonomous AI assistants</strong>. All pending and scheduled payments will be frozen until re-activated by you.
+      </p>
+
+      <div class="bg-surface-bg dark:bg-slate-800 p-3.5 rounded-2xl border border-surface-border dark:border-slate-700 space-y-1.5 text-xs font-mono">
+        <div class="flex justify-between text-text-muted">
+          <span>Active Assistants:</span>
+          <span class="font-bold text-primary-dark dark:text-white">6 Agents</span>
+        </div>
+        <div class="flex justify-between text-text-muted">
+          <span>Action Effect:</span>
+          <span class="font-bold text-status-blocked">Instant Spending Freeze</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="window.AgentGuardApp.closeEmergencyModal()" class="px-4 py-2.5 rounded-xl bg-surface-bg dark:bg-slate-800 hover:bg-surface-border text-xs font-semibold text-text-main dark:text-slate-200 transition-colors" type="button">
+          Cancel
+        </button>
+        <button onclick="window.AgentGuardApp.confirmEmergencyPause()" class="px-5 py-2.5 rounded-xl bg-status-blocked hover:bg-red-700 text-white text-xs font-bold shadow-md transition-colors flex items-center gap-1.5" type="button">
+          <span>Confirm Fleet Pause</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: SET BUDGET LIMIT MODAL ==================== -->
+  <div id="budget-limit-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-border dark:border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-primary-dark dark:text-white">Set Monthly Budget Limit</h3>
+          <p class="text-xs text-text-muted dark:text-slate-400 mt-0.5">Adjust the total spending cap for all agents and transactions.</p>
+        </div>
+        <button onclick="window.AgentGuardViews.closeBudgetModal()" class="text-text-muted hover:text-text-main">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-text-muted dark:text-slate-400 mb-1">Monthly Spending Cap (USD)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted font-mono">$</span>
+            <input 
+              id="budget-limit-input" 
+              type="number" 
+              min="1000" 
+              step="500" 
+              value="68000" 
+              class="w-full h-11 pl-8 pr-4 rounded-xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 text-sm font-mono font-bold text-primary-dark dark:text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+        <p class="text-[11px] text-text-muted dark:text-slate-400 leading-relaxed">
+          When this ceiling is reached, any non-essential automated purchase will be queued in Payment Approvals for your explicit confirmation.
+        </p>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-surface-border dark:border-slate-800">
+        <button onclick="window.AgentGuardViews.closeBudgetModal()" class="px-4 py-2 rounded-xl bg-surface-bg dark:bg-slate-800 text-xs font-semibold text-text-muted hover:text-text-main">Cancel</button>
+        <button onclick="window.AgentGuardViews.saveBudgetLimit()" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-secondary text-white text-xs font-bold shadow-xs">Save Budget Limit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: APPROVE PAYMENT CONFIRMATION ==================== -->
+  <div id="approve-confirm-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border-2 border-primary/20 dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center gap-3 text-primary">
+        <div class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-slate-800 text-primary flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-primary-dark dark:text-white">Confirm Payment Release</h3>
+          <span class="text-xs text-status-approved font-bold uppercase tracking-wider">PayPal Authorization</span>
+        </div>
+      </div>
+
+      <div id="approve-confirm-content" class="text-xs space-y-2 p-4 rounded-2xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button onclick="window.AgentGuardApp.closeApproveModal()" class="px-4 py-2.5 rounded-xl bg-surface-bg dark:bg-slate-800 text-xs font-semibold text-text-muted">Cancel</button>
+        <button onclick="window.AgentGuardApp.executeApprovePayment()" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-secondary text-white text-xs font-bold shadow-md">Confirm & Release Funds</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: DECLINE PAYMENT POPUP ==================== -->
+  <div id="reject-payment-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <h3 class="text-base font-bold text-status-blocked">Decline Payment Request</h3>
+      <p class="text-xs text-text-muted dark:text-slate-400">Please provide a reason for declining this payment request:</p>
+      <textarea id="reject-reason-input" rows="3" class="w-full p-3 rounded-2xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 text-xs text-text-main dark:text-slate-100 focus:outline-none focus:border-primary" placeholder="e.g. Price is higher than agreed or vendor was not requested."></textarea>
+      <div class="flex justify-end gap-3">
+        <button onclick="window.AgentGuardApp.closeRejectModal()" class="px-4 py-2 rounded-xl bg-surface-bg dark:bg-slate-800 text-xs font-semibold">Cancel</button>
+        <button onclick="window.AgentGuardApp.confirmReject()" class="px-5 py-2.5 rounded-xl bg-status-blocked text-white text-xs font-bold hover:bg-red-700">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 5: EDIT AGENT LIMITS POPUP ==================== -->
+  <div id="edit-limit-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-border dark:border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-primary-dark dark:text-white">Configure Spending Limits</h3>
+          <span id="edit-agent-name-display" class="text-xs font-semibold text-primary"></span>
+        </div>
+        <button onclick="window.AgentGuardViews.closeEditLimitModal()" class="text-text-muted hover:text-text-main">✕</button>
+      </div>
+
+      <input type="hidden" id="edit-agent-id" />
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-text-muted dark:text-slate-400 mb-1">Per-Transaction Spending Cap ($)</label>
+          <input id="edit-agent-tx-limit" type="number" min="0" step="50" class="w-full h-11 px-3.5 rounded-xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 text-xs font-mono font-bold text-primary-dark dark:text-white focus:outline-none focus:border-primary" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-text-muted dark:text-slate-400 mb-1">Monthly Spending Cap ($)</label>
+          <input id="edit-agent-monthly-cap" type="number" min="0" step="100" class="w-full h-11 px-3.5 rounded-xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 text-xs font-mono font-bold text-primary-dark dark:text-white focus:outline-none focus:border-primary" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-text-muted dark:text-slate-400 mb-1">Allowed Merchants (comma-separated)</label>
+          <input id="edit-agent-merchants" type="text" placeholder="e.g. Amazon Web Services, GitHub, Datadog" class="w-full h-11 px-3.5 rounded-xl bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 text-xs text-text-main dark:text-slate-100 focus:outline-none focus:border-primary" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-surface-border dark:border-slate-800">
+        <button onclick="window.AgentGuardViews.closeEditLimitModal()" class="px-4 py-2 rounded-xl bg-surface-bg dark:bg-slate-800 text-xs font-semibold text-text-muted hover:text-text-main">Cancel</button>
+        <button onclick="window.AgentGuardViews.saveEditLimits()" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-secondary text-white text-xs font-bold shadow-xs">Save Limits</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 6: AGENT DETAILS POPUP ==================== -->
+  <div id="agent-info-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-surface-border dark:border-slate-800">
+        <h3 class="text-base font-bold text-primary-dark dark:text-white">Agent Rules & Policy</h3>
+        <button onclick="window.AgentGuardViews.closeAgentDetails()" class="text-text-muted hover:text-text-main">✕</button>
+      </div>
+      <div id="agent-info-content"></div>
+      <div class="flex justify-end pt-2">
+        <button onclick="window.AgentGuardViews.closeAgentDetails()" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 7: TRANSACTION DETAILS ==================== -->
+  <div id="txn-details-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-surface-border dark:border-slate-800 animate-fade-in space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-surface-border dark:border-slate-800">
+        <h3 class="text-base font-bold text-primary-dark dark:text-white">Transaction Information</h3>
+        <button onclick="window.AgentGuardApp.closeTxnDetails()" class="text-text-muted hover:text-text-main">✕</button>
+      </div>
+      <div id="txn-details-content"></div>
+      <div class="flex justify-end pt-2">
+        <button onclick="window.AgentGuardApp.closeTxnDetails()" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 8: COMMAND PALETTE (⌘K) ==================== -->
+  <div id="command-palette-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-start justify-center pt-24 p-4" onclick="if(event.target === this) window.AgentGuardApp.closeCommandPalette()">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full border border-surface-border dark:border-slate-800 overflow-hidden animate-fade-in">
+      <div class="p-3.5 border-b border-surface-border dark:border-slate-800 flex items-center gap-3">
+        <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="palette-input" class="w-full text-xs text-text-main dark:text-slate-100 focus:outline-none placeholder:text-text-muted bg-transparent" placeholder="Type a destination or page to jump to..." type="text"/>
+        <kbd class="text-[10px] bg-surface-bg dark:bg-slate-800 border border-surface-border dark:border-slate-700 px-1.5 py-0.5 rounded text-text-muted font-mono">ESC</kbd>
+      </div>
+
+      <div class="p-2 max-h-72 overflow-y-auto text-xs space-y-1">
+        <button onclick="window.AgentGuardStore.setTab('dashboard'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Dashboard</span>
+          <span class="text-[10px] font-mono text-text-muted">Home</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('agent-control'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Agent Control</span>
+          <span class="text-[10px] font-mono text-text-muted">6 Agents</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('payment-approvals'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Payment Approvals</span>
+          <span class="text-[10px] font-mono text-accent-orange">Review</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('transactions'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Transactions</span>
+          <span class="text-[10px] font-mono text-text-muted">History</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('security-monitoring'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Security Center</span>
+          <span class="text-[10px] font-mono text-status-approved">Safeguards</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('monthly-spending'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Monthly Spending</span>
+          <span class="text-[10px] font-mono text-text-muted">Budgets & Graphs</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('split-bills'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Split Bills</span>
+          <span class="text-[10px] font-mono text-text-muted">Shared Bills</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('currency-converter'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Currency Converter</span>
+          <span class="text-[10px] font-mono text-text-muted">40+ World FX</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('qr-scanner'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>QR Scanner</span>
+          <span class="text-[10px] font-mono text-text-muted">POS</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('ai-assistant'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>AI Assistant</span>
+          <span class="text-[10px] font-mono text-primary">Chatbot</span>
+        </button>
+        <button onclick="window.AgentGuardStore.setTab('offers'); window.AgentGuardApp.closeCommandPalette();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-bg dark:hover:bg-slate-800 text-left">
+          <span>Offers & Rewards</span>
+          <span class="text-[10px] font-mono text-status-approved">Cashback</span>
+        </button>
+        <button onclick="window.AgentGuardApp.closeCommandPalette(); window.AgentGuardApp.openEmergencyModal();" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-red-50 text-status-blocked text-left">
+          <span>Emergency Pause All Agents</span>
+          <span class="text-[10px] font-bold font-mono">STOP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Stack -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== APPLICATION SCRIPTS ==================== -->
+  <script src="utils/icons.js"></script>
+  <script>
+    // Render PayPal + AgentGuard Lockup in header
+    const logoContainer = document.getElementById('header-logo-container');
+    if (logoContainer && window.AgentGuardIcons) {
+      logoContainer.innerHTML = `
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          ${window.AgentGuardIcons.paypalLogo(24)}
+          <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+          <div class="hidden sm:block">
+            ${window.AgentGuardIcons.logo('small')}
+          </div>
+        </div>
+      `;
+    }
+  </script>
+  <script src="components/PhoneInput.js"></script>
+  <script src="services/api.js"></script>
+  <script src="data/store.js"></script>
+  <script src="views/loginView.js"></script>
+  <script src="views/dashboardView.js"></script>
+  <script src="views/agentControlView.js"></script>
+  <script src="views/paymentApprovalsView.js"></script>
+  <script src="views/securityMonitoringView.js"></script>
+  <script src="views/transactionsView.js"></script>
+  <script src="views/monthlySpendsView.js"></script>
+  <script src="views/spendingAnalyticsView.js"></script>
+  <script src="views/splitBillsView.js"></script>
+  <script src="views/currencyConverterView.js"></script>
+  <script src="views/qrScannerView.js"></script>
+  <script src="views/aiAssistantView.js"></script>
+  <script src="views/offersView.js"></script>
+  <script src="views/profileSettingsView.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
