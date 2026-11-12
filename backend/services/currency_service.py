@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 import httpx
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
+from typing import Dict, Any
 from backend.models import CurrencyConversion
 
 SUPPORTED_CURRENCIES = ["USD", "INR", "EUR", "GBP", "AED", "JPY", "CAD", "AUD", "SGD", "CHF"]
